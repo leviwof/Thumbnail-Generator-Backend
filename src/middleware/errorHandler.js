@@ -8,6 +8,15 @@ function errorHandler(err, _req, res, _next) {
     return;
   }
 
+  // Always log server errors for debugging.
+  if (statusCode >= 500) {
+    console.error("[error-handler]", {
+      statusCode,
+      message,
+      stack: err.stack
+    });
+  }
+
   const body = {
     success: false,
     message
@@ -15,10 +24,10 @@ function errorHandler(err, _req, res, _next) {
 
   if (env.nodeEnv !== "production") {
     body.errors = err.errors || null;
+    body.stack = err.stack || null;
   }
 
   res.status(statusCode).json(body);
 }
 
 module.exports = { errorHandler };
-

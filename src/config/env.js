@@ -2,12 +2,15 @@ const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");
 
-// `rootDir` is the server folder (the backend is self‑contained here)
-const rootDir = path.resolve(__dirname, "..");
-// Single `.env` file for the backend, placed in the `server` folder
+// `rootDir` is the server folder (the backend is self‑contained here).
+// __dirname → server/src/config, so we go up two levels to reach server/.
+const rootDir = path.resolve(__dirname, "..", "..");
+
+// Single `.env` file for the backend, placed in the `server` folder.
 const envFilePath = path.join(rootDir, ".env");
 
 dotenv.config({ path: envFilePath });
+
 const nodeEnv = process.env.NODE_ENV || "development";
 const uploadRoot = path.join(rootDir, "uploads");
 const legacyUploadRoot = path.join(rootDir, "src", "uploads");

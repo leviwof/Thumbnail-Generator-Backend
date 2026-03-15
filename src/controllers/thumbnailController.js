@@ -32,7 +32,45 @@ function serializeVideo(video) {
   };
 }
 
+/**
+ * POST /videos/:id/thumbnails/generate
+ *
+ * Synchronous endpoint — waits for ffmpeg to finish and returns the
+ * full list of generated thumbnails so the frontend can display them
+ * immediately without polling.
+ *
+ * Timeout on the request itself is managed by the client (axios) or
+ * reverse proxy, not here; we let the service run to completion.
+ */
 exports.generateThumbnails = asyncHandler(async (req, res) => {
+  const baseUrl = getBaseUrl(req);
+  const videoId = req.params.id;
+
+  const thumbnails = await thumbnailService.generateThumbnailsForVideo(videoId, baseUrl);
+
+  res.status(200).json({
+    videoId,
+    count: thumbnails.length,
+    thumbnails: thumbnails.map((t) => ({
+      _id: t._id,
+      thumbnailUrl: t.thumbnailUrl,
+      url: t.thumbnailUrl,
+      filename: t.filename,
+      timestampSeconds: t.timestampSeconds,
+      isPrimary: t.isPrimary,
+      videoId: t.videoId
+    }))
+  });
+});
+
+/**
+ * POST /videos/:id/thumbnails/generate-async
+ *
+ * Fire-and-forget variant: enqueues the job and returns 202 immediately.
+ * The client can poll the video detail endpoint to get the thumbnails
+ * once they are ready.
+ */
+exports.generateThumbnailsAsync = asyncHandler(async (req, res) => {
   const baseUrl = getBaseUrl(req);
 
   enqueueThumbnailJob({ videoId: req.params.id, baseUrl });
@@ -43,18 +81,9 @@ exports.generateThumbnails = asyncHandler(async (req, res) => {
   });
 });
 
-exports.generateThumbnailsSync = asyncHandler(async (req, res) => {
-  const baseUrl = getBaseUrl(req);
-  const videoId = req.params.id;
-
-  const thumbnails = await thumbnailService.generateThumbnailsForVideo(videoId, baseUrl);
-
-  res.status(200).json({
-    videoId,
-    thumbnails: thumbnails.map((thumbnail) => thumbnail.thumbnailUrl)
-  });
-});
-
+/**
+ * POST /videos/:id/thumbnails/select
+ */
 exports.selectThumbnail = asyncHandler(async (req, res) => {
   const video = await thumbnailService.selectPrimaryThumbnail(req.params.id, req.body.thumbnailId);
 
