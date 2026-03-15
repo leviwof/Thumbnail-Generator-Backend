@@ -9,8 +9,9 @@ const AppError = require("../utils/AppError");
 const ffmpeg = require("../utils/ffmpeg");
 
 // Fewer thumbnails and a slightly smaller resolution make generation faster
-// and lighter on CPU without significantly impacting UX.
-const THUMBNAIL_TIMESTAMPS = [2, 6, 10];
+// and lighter on CPU without significantly impacting UX. We still generate at
+// least four frames so the UI can always show a richer set of options.
+const THUMBNAIL_TIMESTAMPS = [2, 6, 10, 14];
 const THUMBNAIL_SIZE = "256x144";
 const MIN_CAPTURE_GAP_SECONDS = 0.25;
 const MIN_CAPTURE_TIMESTAMP_SECONDS = 0.1;

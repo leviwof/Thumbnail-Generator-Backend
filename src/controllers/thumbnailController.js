@@ -1,5 +1,6 @@
 const asyncHandler = require("../utils/asyncHandler");
 const { enqueueThumbnailJob } = require("../services/uploadQueueService");
+const thumbnailService = require("../services/thumbnailService");
 
 function getBaseUrl(req) {
   return `${req.protocol}://${req.get("host")}`;
