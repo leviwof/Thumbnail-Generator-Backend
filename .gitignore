@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.env.local
+coverage/
+*.log
+
+uploads/videos/*
+uploads/thumbnails/*
+!uploads/videos/.gitkeep
+!uploads/thumbnails/.gitkeep
+
+src/uploads/videos/*
+src/uploads/thumbnails/*
+!src/uploads/videos/.gitkeep
+!src/uploads/thumbnails/.gitkeep
