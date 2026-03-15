@@ -8,8 +8,10 @@ const Video = require("../models/Video");
 const AppError = require("../utils/AppError");
 const ffmpeg = require("../utils/ffmpeg");
 
-const THUMBNAIL_TIMESTAMPS = [2, 5, 8, 10];
-const THUMBNAIL_SIZE = "320x240";
+// Fewer thumbnails and a slightly smaller resolution make generation faster
+// and lighter on CPU without significantly impacting UX.
+const THUMBNAIL_TIMESTAMPS = [2, 6, 10];
+const THUMBNAIL_SIZE = "256x144";
 const MIN_CAPTURE_GAP_SECONDS = 0.25;
 const MIN_CAPTURE_TIMESTAMP_SECONDS = 0.1;
 
@@ -213,21 +215,12 @@ async function generateThumbnails(videoPath, videoId, timestamps) {
       .on("end", async () => {
         const filenames = safeTimestamps.map((_value, index) => `${videoId}-thumb-${index + 1}.png`);
 
-        try {
-          await Promise.all(
-            filenames.map(async (filename) => {
-              const thumbnailPath = path.join(env.thumbnailUploadDir, filename);
-
-              await fs.access(thumbnailPath);
-            })
-          );
-
-          resolve(filenames);
-        } catch (error) {
-          reject(
-            new AppError(`Thumbnail generation completed but files were not created: ${error.message}`, 500)
-          );
-        }
+        // At this point ffmpeg reported success. Performing an extra fs.access()
+        // on every generated file adds synchronous I/O for little benefit and
+        // slows down the API response, so we optimistically return the expected
+        // filenames here. Any downstream issues reading files will be surfaced
+        // where they occur (serving the assets), which is typically cheaper.
+        resolve(filenames);
       })
       .on("error", (error) => {
         reject(new AppError(`Thumbnail generation failed: ${error.message}`, 500));

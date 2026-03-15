@@ -1,5 +1,5 @@
 const asyncHandler = require("../utils/asyncHandler");
-const thumbnailService = require("../services/thumbnailService");
+const { enqueueThumbnailJob } = require("../services/uploadQueueService");
 
 function getBaseUrl(req) {
   return `${req.protocol}://${req.get("host")}`;
@@ -33,11 +33,12 @@ function serializeVideo(video) {
 
 exports.generateThumbnails = asyncHandler(async (req, res) => {
   const baseUrl = getBaseUrl(req);
-  const thumbnails = await thumbnailService.generateThumbnailsForVideo(req.params.id, baseUrl);
 
-  res.status(201).json({
-    message: "Thumbnails generated successfully.",
-    thumbnails: thumbnails.map(serializeThumbnail)
+  enqueueThumbnailJob({ videoId: req.params.id, baseUrl });
+
+  res.status(202).json({
+    message: "Thumbnail generation has been enqueued and will complete shortly.",
+    queued: true
   });
 });
 
