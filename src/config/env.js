@@ -2,7 +2,9 @@ const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");
 
-const rootDir = path.resolve(__dirname, "../..");
+// `rootDir` is the server folder (the backend is self‑contained here)
+const rootDir = path.resolve(__dirname, "..");
+// Single `.env` file for the backend, placed in the `server` folder
 const envFilePath = path.join(rootDir, ".env");
 
 dotenv.config({ path: envFilePath });

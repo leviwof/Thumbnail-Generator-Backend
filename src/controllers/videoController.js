@@ -1,20 +1,48 @@
 const asyncHandler = require("../utils/asyncHandler");
 const videoService = require("../services/videoService");
+const { enqueueThumbnailJob } = require("../services/uploadQueueService");
 
 function getBaseUrl(req) {
   return `${req.protocol}://${req.get("host")}`;
 }
 
 exports.uploadVideo = asyncHandler(async (req, res) => {
+  const baseUrl = getBaseUrl(req);
+
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: "Video file is required."
+    });
+  }
+
+  // Basic upload progress logging (request-level, good enough for Render logs)
+  // eslint-disable-next-line no-console
+  console.log("[upload] Incoming video upload", {
+    filename: req.file.originalname,
+    mimeType: req.file.mimetype,
+    sizeBytes: req.file.size
+  });
+
   const video = await videoService.createVideo({
-    baseUrl: getBaseUrl(req),
+    baseUrl,
     file: req.file,
     payload: req.body
   });
 
-  res.status(201).json({
-    message: "Video uploaded successfully.",
+  // Enqueue thumbnail generation instead of blocking the upload response.
+  enqueueThumbnailJob({ videoId: video.id, baseUrl });
+
+  // eslint-disable-next-line no-console
+  console.log("[upload] Video stored and thumbnail job enqueued", {
     videoId: video.id,
+    url: video.videoUrl
+  });
+
+  return res.status(201).json({
+    success: true,
+    videoId: video.id,
+    thumbnails: [],
     video
   });
 });

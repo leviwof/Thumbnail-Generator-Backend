@@ -25,7 +25,20 @@ app.use(
         return;
       }
 
-      callback(new Error("Origin not allowed by CORS."));
+      // In practice, treating unknown origins as hard errors here was
+      // causing a 500 response and surfacing as a "Network Error" in
+      // the client. Instead, log the situation but allow the request.
+      // If you want to re‑tighten CORS later, you can switch this back
+      // to rejecting the origin once CLIENT_URL(S) are configured in
+      // production.
+      console.warn(
+        "[CORS] Allowing request from unlisted origin:",
+        origin,
+        "Configured client URLs:",
+        Array.from(allowedOrigins)
+      );
+
+      callback(null, true);
     },
     credentials: true
   })
