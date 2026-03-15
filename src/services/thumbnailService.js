@@ -8,11 +8,14 @@ const Video = require("../models/Video");
 const AppError = require("../utils/AppError");
 const ffmpeg = require("../utils/ffmpeg");
 
-// Fewer thumbnails and a slightly smaller resolution make generation faster
-// and lighter on CPU without significantly impacting UX. We still generate at
-// least four frames so the UI can always show a richer set of options.
-const THUMBNAIL_TIMESTAMPS = [2, 6, 10, 14];
-const THUMBNAIL_SIZE = "256x144";
+// Capture frames a bit into the playback to avoid fully‑black encoder delay
+// frames and give the user a consistent spread of options across the timeline.
+// These are *target* timestamps; they may be slightly adjusted for very short
+// videos via `resolveThumbnailTimestamps`.
+const THUMBNAIL_TIMESTAMPS = [2, 4, 6, 8, 10];
+
+// Render-friendly, lightweight 16:9 thumbnails.
+const THUMBNAIL_SIZE = "320x180";
 const MIN_CAPTURE_GAP_SECONDS = 0.25;
 const MIN_CAPTURE_TIMESTAMP_SECONDS = 0.1;
 
@@ -213,6 +216,9 @@ async function generateThumbnails(videoPath, videoId, timestamps) {
 
   return new Promise((resolve, reject) => {
     ffmpeg(videoPath)
+      // Use ffmpeg's built-in `thumbnail` filter to pick representative frames
+      // around each timestamp and scale them in a single, efficient pass.
+      .outputOptions(["-vf", `thumbnail,scale=${THUMBNAIL_SIZE.replace("x", ":")}`])
       .on("end", async () => {
         const filenames = safeTimestamps.map((_value, index) => `${videoId}-thumb-${index + 1}.png`);
 

@@ -43,6 +43,18 @@ exports.generateThumbnails = asyncHandler(async (req, res) => {
   });
 });
 
+exports.generateThumbnailsSync = asyncHandler(async (req, res) => {
+  const baseUrl = getBaseUrl(req);
+  const videoId = req.params.id;
+
+  const thumbnails = await thumbnailService.generateThumbnailsForVideo(videoId, baseUrl);
+
+  res.status(200).json({
+    videoId,
+    thumbnails: thumbnails.map((thumbnail) => thumbnail.thumbnailUrl)
+  });
+});
+
 exports.selectThumbnail = asyncHandler(async (req, res) => {
   const video = await thumbnailService.selectPrimaryThumbnail(req.params.id, req.body.thumbnailId);
 

@@ -30,9 +30,6 @@ exports.uploadVideo = asyncHandler(async (req, res) => {
     payload: req.body
   });
 
-  // Enqueue thumbnail generation instead of blocking the upload response.
-  enqueueThumbnailJob({ videoId: video.id, baseUrl });
-
   // eslint-disable-next-line no-console
   console.log("[upload] Video stored and thumbnail job enqueued", {
     videoId: video.id,
@@ -42,6 +39,10 @@ exports.uploadVideo = asyncHandler(async (req, res) => {
   return res.status(201).json({
     success: true,
     videoId: video.id,
+    // Thumbnails are generated asynchronously via the dedicated
+    // `/api/videos/:id/thumbnails/generate` endpoint. The client
+    // should call that route and/or poll the video detail endpoint
+    // for the freshest thumbnail list.
     thumbnails: [],
     video
   });
