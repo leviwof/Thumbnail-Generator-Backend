@@ -17,6 +17,16 @@ CLIENT_URL=https://your-frontend-domain.com
 NODE_ENV=production
 ```
 
+## Render checklist
+
+- Root Directory: `server`
+- Build Command: `npm install`
+- Start Command: `npm start`
+- Add the required environment variables in Render `Environment`
+- Do not rely on `server/.env`; Render does not load it from your repo
+- If you use MongoDB Atlas, allow Render to connect in Atlas `Network Access`
+- If Atlas is still timing out, temporarily allow `0.0.0.0/0` to confirm it is a network allowlist issue
+
 ## Optional multi-origin setup
 
 If you need both local development and the deployed frontend to reach the same API:
